@@ -49,5 +49,13 @@ def fetch_all_orders():
     for key in keys:
         if data[key]["status"] != "open":
             continue
+        data[key]["orderId"] = key
         all_orders.append(data[key])
     return all_orders
+
+
+def order_status(order_id):
+    with open(file_path, "r") as json_file:
+        data = json.load(json_file)
+
+    return data[order_id]

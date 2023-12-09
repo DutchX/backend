@@ -12,7 +12,7 @@ monkey.patch_all()
 # Import Compress module from Flask-Compress for compress static
 # content (HTML, CSS, JS)
 # from database import insert_row, print_row
-from dutchx import create_order, fetch_all_orders, claim_order
+from dutchx import create_order, fetch_all_orders, claim_order, order_status
 
 app = Flask(__name__)
 
@@ -44,9 +44,6 @@ def create():
 
 @app.route('/fetch_orders', methods=["GET"])
 def fetch_orders():
-    # api_key = request.headers["api_key"]
-    # if api_key != os.environ['api_key']:
-    #     return {"error": {"code": 403, "message": "Auth Failed"}}
     all_orders = fetch_all_orders()
     return {"orders": all_orders, "code": 200}
 
@@ -59,6 +56,16 @@ def claim():
         return {"error": {"code": 403, "message": "Auth Failed"}}
 
     all_orders = claim_order(orderid)
+    return {"orders": all_orders, "code": 200}
+
+
+@app.route('/order_status', methods=["GET"])
+def status():
+    order_id = request.args.get("orderId")
+    if not order_id:
+        return {"code": 500, "message": "orderId is required"}
+
+    all_orders = order_status(order_id)
     return {"orders": all_orders, "code": 200}
 
 
