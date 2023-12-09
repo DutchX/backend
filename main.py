@@ -12,7 +12,7 @@ monkey.patch_all()
 # Import Compress module from Flask-Compress for compress static
 # content (HTML, CSS, JS)
 # from database import insert_row, print_row
-from dutchx import create_order, fetch_all_orders
+from dutchx import create_order, fetch_all_orders, claim_order
 
 app = Flask(__name__)
 
@@ -27,28 +27,12 @@ def hello_world():
     return render_template('index.html')
 
 
-struct UserOrder {
-    address from;
-    uint256 fromChainId;
-    address fromToken;
-    uint256 fromAmount;
-    uint256 toChainId;
-    address toToken;
-    uint256 startingPrice;
-    uint256 endingPrice;
-    uint256 stakeAmount;
-    uint256 creationTimestamp;
-    uint256 duration;
-    uint256 nonce;
-}
-
-
-@app.route('/create', methods=["POST"])
+@app.route('/create_order', methods=["POST"])
 def create():
     order = request.json["order"]
     signature = request.json["signature"]
-    orderid = request.json["orderid"]
-    api_key = request.headers["api_key"]
+    orderid = request.json["orderId"]
+    api_key = request.headers["x-api-key"]
     if api_key != os.environ['api_key']:
         return {"error": {"code": 403, "message": "Auth Failed"}}
     order_status = create_order(order, signature, orderid)
@@ -57,27 +41,25 @@ def create():
     else:
         return {"status": "order_exists", "code": 200}
 
-@app.route('/fetch', methods=["POST"])
+
+@app.route('/fetch_orders', methods=["GET"])
 def fetch_orders():
-    api_key = request.headers["api_key"]
-    if api_key != os.environ['api_key']:
-        return {"error": {"code": 403, "message": "Auth Failed"}}
+    # api_key = request.headers["api_key"]
+    # if api_key != os.environ['api_key']:
+    #     return {"error": {"code": 403, "message": "Auth Failed"}}
     all_orders = fetch_all_orders()
-    return {"orders": all_orders, "status": "success", "code": 200}
+    return {"orders": all_orders, "code": 200}
+
 
 @app.route('/claim_order', methods=["POST"])
-def fetch_orders():
-    api_key = request.headers["api_key"]
+def claim():
+    orderid = request.json["orderId"]
+    api_key = request.headers["x-api-key"]
     if api_key != os.environ['api_key']:
         return {"error": {"code": 403, "message": "Auth Failed"}}
-    all_orders = fetch_all_orders()
-    return {"orders": all_orders, "status": "success", "code": 200}
 
-
-@app.route('/get')
-def get_txns():
-    print_row()
-    return "0xFUckYea"
+    all_orders = claim_order(orderid)
+    return {"orders": all_orders, "code": 200}
 
 
 if __name__ == '__main__':
